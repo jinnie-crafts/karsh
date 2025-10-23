@@ -5,23 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>karsh | Secure Login</title>
 <style>
-  /* Reset & Base */
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Fira Code', monospace;
-  }
-
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Fira Code', monospace; }
   body {
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: #0d0d17; /* Darker background for terminal feel */
+    background-color: #0d0d17;
     color: #c5c6c7;
   }
-
   .login-container {
     background-color: #1c1c28;
     padding: 40px 50px;
@@ -30,124 +22,63 @@
     text-align: center;
     width: 100%;
     max-width: 400px;
-    transition: 0.3s ease-in-out;
-  }
-
-  .login-container:hover {
-    box-shadow: 0 0 40px rgba(97, 218, 251, 0.15);
-  }
-
-  h1 {
-    color: #61dafb;
-    margin-bottom: 25px;
-    font-size: 2.1em;
-    letter-spacing: 1px;
-  }
-
-  input[type="password"] {
-    width: 100%;
-    padding: 14px;
-    margin-bottom: 20px;
-    border: none;
-    border-radius: 6px;
-    background-color: #10101a;
-    color: #c5c6c7;
-    font-size: 1em;
-    outline: none;
-    transition: all 0.2s;
-  }
-
-  input[type="password"]:focus {
-    background-color: #19192a;
-    box-shadow: 0 0 6px #61dafb;
-  }
-
-  button {
-    width: 100%;
-    padding: 14px;
-    border: none;
-    border-radius: 6px;
-    background-color: #61dafb;
-    color: #0d0d17;
-    font-weight: bold;
-    font-size: 1em;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  button:hover {
-    background-color: #21a1f1;
-    transform: translateY(-2px);
-  }
-
-  p {
-    margin-top: 15px;
-    font-size: 0.85em;
-    color: #777;
-  }
-
-  /* Subtle fade-in animation */
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(15px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .login-container {
     animation: fadeIn 0.8s ease-out;
   }
-
-  /* Optional: glowing border pulse */
-  .login-container:focus-within {
-    box-shadow: 0 0 15px rgba(97, 218, 251, 0.25);
+  @keyframes fadeIn { from {opacity:0; transform:translateY(15px);} to {opacity:1; transform:translateY(0);} }
+  h1 { color: #61dafb; margin-bottom: 25px; font-size: 2.1em; letter-spacing: 1px; }
+  input[type="password"] {
+    width: 100%; padding: 14px; margin-bottom: 20px; border: none; border-radius: 6px;
+    background-color: #10101a; color: #c5c6c7; font-size: 1em; outline: none; transition: all 0.2s;
   }
+  input[type="password"]:focus { background-color: #19192a; box-shadow: 0 0 6px #61dafb; }
+  button {
+    width: 100%; padding: 14px; border: none; border-radius: 6px;
+    background-color: #61dafb; color: #0d0d17; font-weight: bold; font-size: 1em;
+    cursor: pointer; transition: all 0.2s ease;
+  }
+  button:hover { background-color: #21a1f1; transform: translateY(-2px); }
+  p { margin-top: 15px; font-size: 0.85em; color: #777; }
 </style>
 </head>
 <body>
-  <div class="login-container">
-    <h1>Secure Access</h1>
-    <input type="password" id="password" placeholder="Enter Password" maxlength="30">
-    <button id="loginBtn">Access</button>
-    <p>© 2025 Karsh Securities | Confidential</p>
-  </div>
+<div class="login-container">
+  <h1>Secure Access</h1>
+  <input type="password" id="password" placeholder="Enter Password" maxlength="30">
+  <button id="loginBtn">Access</button>
+  <p>© 2025 Karsh Securities | Confidential</p>
+</div>
 
-  <script>
-    const input = document.getElementById("password");
-    const button = document.getElementById("loginBtn");
+<script>
+const input = document.getElementById("password");
+const button = document.getElementById("loginBtn");
 
-    async function login() {
-      const password = input.value.trim();
+async function login() {
+  const password = input.value.trim();
+  if (!password) { alert("Please enter your password."); return; }
 
-      if (!password) {
-        alert("Please enter your password.");
-        return;
-      }
-
-      try {
-        const res = await fetch("/verify", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ password })
-        });
-
-        const data = await res.json();
-        input.value = ""; // clear input field
-
-        if (data.ok) {
-          window.location.href = "/protected/index.html";
-        } else {
-          alert("Access denied: Invalid password.");
-        }
-      } catch (err) {
-        alert("Server unreachable. Try again later.");
-        input.value = "";
-      }
-    }
-
-    button.addEventListener("click", login);
-    input.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") login();
+  try {
+    const res = await fetch("/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ password })
     });
-  </script>
+    const data = await res.json();
+    input.value = "";
+
+    if (data.ok) {
+      window.location.href = "/protected/";
+    } else {
+      alert("Access denied: Invalid password.");
+    }
+  } catch (err) {
+    alert("Server unreachable. Try again later.");
+    input.value = "";
+  }
+}
+
+button.addEventListener("click", login);
+input.addEventListener("keydown", (e) => { if (e.key === "Enter") login(); });
+</script>
 </body>
 </html>
