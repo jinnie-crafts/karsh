@@ -5,6 +5,11 @@ import cookieParser from "cookie-parser";
 import crypto from "crypto";
 import { totp } from "otplib";
 import 'dotenv/config';
+import { fileURLToPath } from "url";
+
+// ES module __dirname equivalent
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -15,7 +20,7 @@ app.use(cookieParser());
 
 // TOTP secret
 const SECRET = process.env.TOTP_SECRET || "karsh.beta.jinnie.akka.bcha";
-totp.options = { step: 300 }; // 5 minutes step
+totp.options = { step: 120 }; // 2 minutes step
 
 // In-memory session tokens
 const validTokens = new Set();
