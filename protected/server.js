@@ -4,6 +4,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import crypto from "crypto";
 import { totp } from "otplib";
+import bcrypt from 'bcrypt'; // <-- Import bcrypt for secure password hashing
 import 'dotenv/config';
 import { fileURLToPath } from "url";
 
@@ -15,13 +16,13 @@ const app = express();
 
 // --- Configuration ---
 
-// Use a stronger default secret if the environment variable is not set
-// NOTE: For production, this MUST be unique and stored securely.
+// Retrieve the SECURE HASH from the environment variable (not visible in source code)
+const PASSWORD_HASH = process.env.PASSWORD_HASH;
+
+// TOTP secret from environment
 const SECRET = process.env.TOTP_SECRET || "JBSWY3DPEHPK3PXP"; 
 
-// Google Authenticator standard time step is 30 seconds.
-// Added 'window: 1' to allow for 1 step before and 1 step after the current time
-// (i.e., it checks codes from the last 30 seconds, the current 30 seconds, and the next 30 seconds).
+// Set TOTP options: 30-second step, with a window of 1 (checks current, prev, next)
 totp.options = { step: 30, window: 1 }; 
 
 // In-memory session tokens
@@ -36,7 +37,7 @@ app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-// Auth middleware
+// Auth middleware (requires valid session token)
 function requireAuth(req, res, next) {
     const token = req.cookies?.auth_token;
     if (!token || !validTokens.has(token)) return res.status(401).send("Unauthorized");
@@ -45,46 +46,50 @@ function requireAuth(req, res, next) {
 
 // --- Endpoints ---
 
-// DEBUG ENDPOINT: Use this temporarily to check what code the server expects right now.
-// REMOVE THIS ENDPOINT BEFORE DEPLOYMENT TO PRODUCTION!
-app.get("/debug-code", (req, res) => {
-    // Generate the code the server expects at this exact moment
-    const expectedCode = totp.generate(SECRET);
-    const timeRemaining = totp.timeRemaining();
+// Verify TOTP (Login) - Securely checks password hash and TOTP code
+app.post("/verify", async (req, res) => { // <-- Function must be async for bcrypt.compare
+    const { password, code } = req.body;
     
-    // NOTE: Do not expose this in a production environment!
-    return res.json({ 
-        ok: true, 
-        message: "TEMPORARY DEBUG INFO - REMOVE IN PRODUCTION", 
-        expectedCode: expectedCode,
-        timeRemainingInWindow: `${timeRemaining} seconds`,
-        secret: SECRET // Double-check the secret being used
-    });
-});
-
-
-// Verify TOTP (Login)
-app.post("/verify", (req, res) => {
-    const { code } = req.body;
-    
-    if (typeof code !== "string" || code.length === 0) {
-        return res.status(400).json({ ok: false, error: "Code is missing or invalid format." });
+    // 1. Basic Input Validation
+    if (typeof password !== "string" || typeof code !== "string" || code.length === 0) {
+        return res.status(400).json({ ok: false, error: "Missing password or code." });
     }
 
-    // Check code against the current, previous, and next 30-second windows (due to window: 1)
+    // 2. Load Hash and Check for Misconfiguration
+    if (!PASSWORD_HASH) {
+        console.error("FATAL: PASSWORD_HASH not found in environment variables.");
+        return res.status(500).json({ ok: false, error: "Server configuration error." });
+    }
+    
+    // 3. Password Hash Check (Primary Authentication)
+    let isPasswordValid = false;
+    try {
+        // Asynchronously compare the plaintext password with the stored hash
+        isPasswordValid = await bcrypt.compare(password, PASSWORD_HASH); 
+    } catch (e) {
+        // Catch any errors during comparison (e.g., malformed hash)
+        console.error("Bcrypt comparison error:", e);
+    }
+    
+    if (!isPasswordValid) {
+        // Generic error to prevent revealing which piece of data (password/code) failed
+        return res.status(401).json({ ok: false, error: "Invalid credentials." });
+    }
+
+    // 4. TOTP Code Check (Second Factor Authentication)
     if (!totp.check(code, SECRET)) {
-        return res.status(401).json({ ok: false, error: "Invalid or expired code. Check your device's time synchronization." });
+        return res.status(401).json({ ok: false, error: "Invalid credentials." });
     }
 
+    // 5. Authentication Success: Generate Session
     const token = generateToken();
     validTokens.add(token);
 
     res.cookie("auth_token", token, {
         httpOnly: true,
         sameSite: "lax",
-        // 'secure: true' in production for HTTPS, 'false' in development
         secure: process.env.NODE_ENV === "production", 
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds (optional, for session duration)
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
     return res.json({ ok: true, message: "Authentication successful." });
@@ -95,22 +100,20 @@ app.post("/logout", (req, res) => {
     const token = req.cookies?.auth_token;
     if (token) validTokens.delete(token);
     
-    // Clear the cookie by setting it to expire immediately
     res.clearCookie("auth_token", {
         httpOnly: true,
         sameSite: "lax",
         secure: process.env.NODE_ENV === "production",
     });
 
-    res.json({ ok: true, message: "Logged out successfully." });
+    res.json({ ok: true });
 });
-
 
 // Serve public folder (login page) — up one level from /protected
 const publicPath = path.join(__dirname, "..", "public");
 app.use(express.static(publicPath));
 
-// Serve protected folder (backend + content) with authentication
+// Serve protected folder (backend + content)
 app.use("/protected", requireAuth, express.static(__dirname));
 
 // Fallback for SPA routes
