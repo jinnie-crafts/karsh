@@ -1,7 +1,7 @@
 {
-  "name": "protected-website-backend",
+  "name": "karsh",
   "version": "1.0.0",
-  "description": "Backend for TOTP-protected website with session-based access",
+  "description": "karsh",
   "main": "server.js",
   "type": "module",
   "scripts": {
@@ -9,11 +9,12 @@
     "dev": "nodemon server.js"
   },
   "dependencies": {
-    "cookie-parser": "^1.4.6",
-    "cors": "^2.8.5",
-    "express": "^4.18.2",
-    "otplib": "^12.0.1"
-  },
+  "express": "^4.18.2",
+  "cors": "^2.8.5",
+  "cookie-parser": "^1.4.6",
+  "otplib": "^12.0.1",
+  "dotenv": "^16.0.0"
+},
   "devDependencies": {
     "nodemon": "^2.0.22"
   },
