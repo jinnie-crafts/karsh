@@ -90,10 +90,10 @@ const protectedPath = path.join(__dirname, "site");   // main website content
 app.use(express.static(publicPath));
 
 // Serve protected site after authentication
-app.use("/protected", requireAuth, express.static(protectedPath));
+app.use("/protected/site", requireAuth, express.static(protectedPath));
 
 // SPA fallback for protected routes
-app.get("/protected/*", requireAuth, (req, res) => {
+app.get("/protected/site/*", requireAuth, (req, res) => {
   res.sendFile(path.join(protectedPath, "index.html"));
 });
 
