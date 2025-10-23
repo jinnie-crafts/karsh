@@ -20,7 +20,8 @@ app.use(cookieParser());
 
 // TOTP secret
 const SECRET = process.env.TOTP_SECRET || "JBSWY3DPEHPK3PXP";
-totp.options = { step: 120 }; // 2 minutes step
+totp.options = { step: 30 }; // 2 minutes step
+const isValid = totp.check(userCode, process.env.TOTP_SECRET);  //optional piece
 
 // In-memory session tokens
 const validTokens = new Set();
@@ -54,6 +55,9 @@ function requireAuth(req, res, next) {
   if (!token || !validTokens.has(token)) return res.status(401).send("Unauthorized");
   next();
 }
+//optional piece
+console.log("Expected code:", totp.generate(process.env.TOTP_SECRET));
+console.log("User entered:", code);
 
 // Logout
 app.post("/logout", (req, res) => {
@@ -78,5 +82,3 @@ app.get("*", (req, res) => {
 // Start server
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
-
-
