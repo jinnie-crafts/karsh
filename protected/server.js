@@ -4,7 +4,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import crypto from "crypto";
 import { totp } from "otplib";
-import bcrypt from 'bcrypt'; // <-- Import bcrypt for secure password hashing
+import bcrypt from 'bcryptjs'; // <-- Import bcrypt for secure password hashing
 import 'dotenv/config';
 import { fileURLToPath } from "url";
 
