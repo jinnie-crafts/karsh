@@ -13,30 +13,27 @@ app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-// TOTP secret from environment variable
+// TOTP secret
 const SECRET = process.env.TOTP_SECRET || "karsh.beta.jinnie.akka.bcha";
-totp.options = { step: 120 }; // 2 minutes step
+totp.options = { step: 300 }; // 5 minutes step
 
-// In-memory token store
+// In-memory session tokens
 const validTokens = new Set();
 
-// Generate random session token
 function generateToken() {
   return crypto.randomBytes(32).toString("hex");
 }
 
-// TOTP verification endpoint
+// Verify TOTP
 app.post("/verify", (req, res) => {
   const { code } = req.body;
   if (typeof code !== "string") return res.status(400).json({ ok: false });
 
-  const ok = totp.check(code, SECRET);
-  if (!ok) return res.status(401).json({ ok: false });
+  if (!totp.check(code, SECRET)) return res.status(401).json({ ok: false });
 
   const token = generateToken();
   validTokens.add(token);
 
-  // Session cookie (expires on tab close)
   res.cookie("auth_token", token, {
     httpOnly: true,
     sameSite: "lax",
@@ -46,14 +43,14 @@ app.post("/verify", (req, res) => {
   return res.json({ ok: true });
 });
 
-// Middleware to protect routes
+// Auth middleware
 function requireAuth(req, res, next) {
   const token = req.cookies?.auth_token;
   if (!token || !validTokens.has(token)) return res.status(401).send("Unauthorized");
   next();
 }
 
-// Logout endpoint
+// Logout
 app.post("/logout", (req, res) => {
   const token = req.cookies?.auth_token;
   if (token) validTokens.delete(token);
@@ -61,15 +58,16 @@ app.post("/logout", (req, res) => {
   res.json({ ok: true });
 });
 
-// Serve public folder at root
-app.use(express.static(path.join(process.cwd(), "public")));
+// Serve public folder (login page) — up one level from /protected
+const publicPath = path.join(__dirname, "..", "public");
+app.use(express.static(publicPath));
 
-// Serve protected folder with authentication
-app.use("/protected", requireAuth, express.static(path.join(process.cwd(), "protected")));
+// Serve protected folder (backend + content)
+app.use("/protected", requireAuth, express.static(__dirname));
 
-// Fallback: any unknown route serves login page
+// Fallback for SPA routes
 app.get("*", (req, res) => {
-  res.sendFile(path.join(process.cwd(), "public", "index.html"));
+  res.sendFile(path.join(publicPath, "index.html"));
 });
 
 // Start server
