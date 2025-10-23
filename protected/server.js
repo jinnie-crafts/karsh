@@ -4,24 +4,28 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import crypto from "crypto";
 import { totp } from "otplib";
+import 'dotenv/config';
 
 const app = express();
+
+// Middleware
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-// Your secret key (same one in Authenticator app)
-const SECRET = "karsh.beta.jinnie.akka.bcha";
-totp.options = { step: 120 }; // 2-minute rotating TOTP code
+// TOTP secret from environment variable
+const SECRET = process.env.TOTP_SECRET || "JBSW.Y3DP.EHPK3P.XP";
+totp.options = { step: 300 }; // 5 minutes step
 
-// Store issued tokens
+// In-memory token store
 const validTokens = new Set();
 
+// Generate random token for session
 function generateToken() {
   return crypto.randomBytes(32).toString("hex");
 }
 
-// Verify TOTP and set cookie
+// Verify TOTP code
 app.post("/verify", (req, res) => {
   const { code } = req.body;
   if (typeof code !== "string") return res.status(400).json({ ok: false });
@@ -32,7 +36,7 @@ app.post("/verify", (req, res) => {
   const token = generateToken();
   validTokens.add(token);
 
-  // Session cookie (expires when tab/browser closes)
+  // Session cookie (expires when tab closes)
   res.cookie("auth_token", token, {
     httpOnly: true,
     sameSite: "lax",
@@ -42,7 +46,7 @@ app.post("/verify", (req, res) => {
   return res.json({ ok: true });
 });
 
-// Middleware to check cookie
+// Middleware to check authentication
 function requireAuth(req, res, next) {
   const token = req.cookies?.auth_token;
   if (!token || !validTokens.has(token)) return res.status(401).send("Unauthorized");
@@ -57,10 +61,17 @@ app.post("/logout", (req, res) => {
   res.json({ ok: true });
 });
 
-// Serve files
+// Serve public folder as root
 app.use(express.static(path.join(process.cwd(), "public")));
+
+// Serve protected folder with authentication
 app.use("/protected", requireAuth, express.static(path.join(process.cwd(), "protected")));
 
+// Fallback: serve login page for any unknown route (optional)
+app.get("*", (req, res) => {
+  res.sendFile(path.join(process.cwd(), "public", "index.html"));
+});
+
+// Start server
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
-
