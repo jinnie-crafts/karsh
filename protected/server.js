@@ -15,17 +15,17 @@ app.use(cookieParser());
 
 // TOTP secret from environment variable
 const SECRET = process.env.TOTP_SECRET || "karsh.beta.jinnie.akka.bcha";
-totp.options = { step: 300 }; // 5 minutes step
+totp.options = { step: 120 }; // 2 minutes step
 
 // In-memory token store
 const validTokens = new Set();
 
-// Generate random token for session
+// Generate random session token
 function generateToken() {
   return crypto.randomBytes(32).toString("hex");
 }
 
-// Verify TOTP code
+// TOTP verification endpoint
 app.post("/verify", (req, res) => {
   const { code } = req.body;
   if (typeof code !== "string") return res.status(400).json({ ok: false });
@@ -36,7 +36,7 @@ app.post("/verify", (req, res) => {
   const token = generateToken();
   validTokens.add(token);
 
-  // Session cookie (expires when tab closes)
+  // Session cookie (expires on tab close)
   res.cookie("auth_token", token, {
     httpOnly: true,
     sameSite: "lax",
@@ -46,7 +46,7 @@ app.post("/verify", (req, res) => {
   return res.json({ ok: true });
 });
 
-// Middleware to check authentication
+// Middleware to protect routes
 function requireAuth(req, res, next) {
   const token = req.cookies?.auth_token;
   if (!token || !validTokens.has(token)) return res.status(401).send("Unauthorized");
@@ -61,13 +61,13 @@ app.post("/logout", (req, res) => {
   res.json({ ok: true });
 });
 
-// Serve public folder as root
+// Serve public folder at root
 app.use(express.static(path.join(process.cwd(), "public")));
 
 // Serve protected folder with authentication
 app.use("/protected", requireAuth, express.static(path.join(process.cwd(), "protected")));
 
-// Fallback: serve login page for any unknown route (optional)
+// Fallback: any unknown route serves login page
 app.get("*", (req, res) => {
   res.sendFile(path.join(process.cwd(), "public", "index.html"));
 });
@@ -75,4 +75,3 @@ app.get("*", (req, res) => {
 // Start server
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
-
