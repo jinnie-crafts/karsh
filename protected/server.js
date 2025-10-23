@@ -11,7 +11,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Your secret key (same one in Authenticator app)
-const SECRET = "karsh.beta.jinnie";
+const SECRET = "karsh.beta.jinnie.akka.bcha";
 totp.options = { step: 120 }; // 2-minute rotating TOTP code
 
 // Store issued tokens
@@ -63,3 +63,4 @@ app.use("/protected", requireAuth, express.static(path.join(process.cwd(), "prot
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
+
