@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>karsh Login</title>
+<style>
+  /* Basic Reset */
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Fira Code', monospace; }
+  
+  body {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #1e1e2f; /* dark editor-like background */
+    color: #c5c6c7;
+  }
+
+  .login-container {
+    background-color: #2c2c3c;
+    padding: 40px 50px;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    text-align: center;
+    width: 100%;
+    max-width: 400px;
+  }
+
+  h1 {
+    color: #61dafb; /* coder-like neon blue */
+    margin-bottom: 30px;
+    font-size: 2em;
+    letter-spacing: 1px;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 20px;
+    border: none;
+    border-radius: 6px;
+    background-color: #1e1e2f;
+    color: #c5c6c7;
+    font-size: 1em;
+    outline: none;
+    transition: 0.2s;
+  }
+
+  input[type="text"]:focus {
+    background-color: #29293f;
+    box-shadow: 0 0 5px #61dafb;
+  }
+
+  button {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 6px;
+    background-color: #61dafb;
+    color: #1e1e2f;
+    font-weight: bold;
+    font-size: 1em;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  button:hover {
+    background-color: #21a1f1;
+    transform: translateY(-2px);
+  }
+
+  p {
+    margin-top: 15px;
+    font-size: 0.9em;
+    color: #888;
+  }
+</style>
+</head>
+<body>
+  <div class="login-container">
+    <h1>Secure Access</h1>
+    <input type="text" id="code" placeholder="Enter 6-digit code" maxlength="6" pattern="\d{6}" inputmode="numeric">
+    <button id="go">Enter</button>
+    <p>Powered by karsh Securities.</p>
+  </div>
+
+ <script>
+  const input = document.getElementById("code");
+  const button = document.getElementById("go");
+
+  async function login() {
+    const code = input.value.trim();
+    if (code.length !== 6) return alert("Please enter key for Secure login...");
+
+    try {
+      const res = await fetch("/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ code })
+      });
+
+      if (res.ok) {
+        input.value = ""; // ✅ Clear input field after successful submission
+        window.location.href = "/protected/index.html";
+      } else {
+        alert("Invalid or expired code");
+        input.value = ""; // ✅ Also clear input on failure
+      }
+    } catch (err) {
+      alert("An error occurred. Try again...");
+      input.value = ""; // ✅ Clear on error
+    }
+  }
+
+  button.addEventListener("click", login);
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") login();
+  });
+
+  // Restrict input to digits and max 6
+  input.addEventListener("input", () => {
+    input.value = input.value.replace(/\D/g, "");
+    if (input.value.length > 6) input.value = input.value.slice(0, 6);
+  });
+</script>
+</body>
+</html>
