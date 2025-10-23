@@ -3,53 +3,63 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>karsh Login</title>
+<title>karsh | Secure Login</title>
 <style>
-  /* Basic Reset */
-  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Fira Code', monospace; }
-  
+  /* Reset & Base */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Fira Code', monospace;
+  }
+
   body {
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: #1e1e2f; /* dark editor-like background */
+    background-color: #0d0d17; /* Darker background for terminal feel */
     color: #c5c6c7;
   }
 
   .login-container {
-    background-color: #2c2c3c;
+    background-color: #1c1c28;
     padding: 40px 50px;
     border-radius: 12px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
     text-align: center;
     width: 100%;
     max-width: 400px;
+    transition: 0.3s ease-in-out;
+  }
+
+  .login-container:hover {
+    box-shadow: 0 0 40px rgba(97, 218, 251, 0.15);
   }
 
   h1 {
-    color: #61dafb; /* coder-like neon blue */
-    margin-bottom: 30px;
-    font-size: 2em;
+    color: #61dafb;
+    margin-bottom: 25px;
+    font-size: 2.1em;
     letter-spacing: 1px;
   }
 
-  input[type="text"] {
+  input[type="password"] {
     width: 100%;
     padding: 14px;
     margin-bottom: 20px;
     border: none;
     border-radius: 6px;
-    background-color: #1e1e2f;
+    background-color: #10101a;
     color: #c5c6c7;
     font-size: 1em;
     outline: none;
-    transition: 0.2s;
+    transition: all 0.2s;
   }
 
-  input[type="text"]:focus {
-    background-color: #29293f;
-    box-shadow: 0 0 5px #61dafb;
+  input[type="password"]:focus {
+    background-color: #19192a;
+    box-shadow: 0 0 6px #61dafb;
   }
 
   button {
@@ -58,11 +68,11 @@
     border: none;
     border-radius: 6px;
     background-color: #61dafb;
-    color: #1e1e2f;
+    color: #0d0d17;
     font-weight: bold;
     font-size: 1em;
     cursor: pointer;
-    transition: 0.2s;
+    transition: all 0.2s ease;
   }
 
   button:hover {
@@ -72,61 +82,72 @@
 
   p {
     margin-top: 15px;
-    font-size: 0.9em;
-    color: #888;
+    font-size: 0.85em;
+    color: #777;
+  }
+
+  /* Subtle fade-in animation */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .login-container {
+    animation: fadeIn 0.8s ease-out;
+  }
+
+  /* Optional: glowing border pulse */
+  .login-container:focus-within {
+    box-shadow: 0 0 15px rgba(97, 218, 251, 0.25);
   }
 </style>
 </head>
 <body>
   <div class="login-container">
     <h1>Secure Access</h1>
-    <input type="text" id="code" placeholder="Enter Secure code">
-    <button id="go">Enter</button>
-    <p>Powered by karsh Securities.</p>
+    <input type="password" id="password" placeholder="Enter Password" maxlength="30">
+    <button id="loginBtn">Access</button>
+    <p>© 2025 Karsh Securities | Confidential</p>
   </div>
 
- <script>
-  const input = document.getElementById("code");
-  const button = document.getElementById("go");
+  <script>
+    const input = document.getElementById("password");
+    const button = document.getElementById("loginBtn");
 
-  async function login() {
-    const code = input.value.trim();
+    async function login() {
+      const password = input.value.trim();
 
-    // ✅ Optional: require at least 6 characters (but not fixed length)
-    if (code.length < 6) {
-      return alert("Please enter at least 6 characters for Secure login...");
-    }
-
-    try {
-      const res = await fetch("/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ code })
-      });
-
-      if (res.ok) {
-        input.value = ""; // ✅ Clear input field after successful submission
-        window.location.href = "/protected/index.html";
-      } else {
-        alert("Invalid or expired code");
-        input.value = ""; // ✅ Clear input on failure
+      if (!password) {
+        alert("Please enter your password.");
+        return;
       }
-    } catch (err) {
-      alert("An error occurred. Try again...");
-      input.value = ""; // ✅ Clear on error
+
+      try {
+        const res = await fetch("/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ password })
+        });
+
+        const data = await res.json();
+        input.value = ""; // clear input field
+
+        if (data.ok) {
+          window.location.href = "/protected/index.html";
+        } else {
+          alert("Access denied: Invalid password.");
+        }
+      } catch (err) {
+        alert("Server unreachable. Try again later.");
+        input.value = "";
+      }
     }
-  }
 
-  button.addEventListener("click", login);
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") login();
-  });
-
-  // ✅ Allow everything except whitespace at start or end (trim automatically)
-  // If you still want a max length (e.g. 20 chars), uncomment below line:
-  // input.setAttribute("maxlength", "20");
-</script>
-
+    button.addEventListener("click", login);
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") login();
+    });
+  </script>
 </body>
 </html>
