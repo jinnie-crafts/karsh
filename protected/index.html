@@ -1,466 +1,132 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description"
-    content="This is the official website of SPYDER Inc. This website is designed by Rishu Maurya , A 17 years old boy. This is going to be mainly a Portfolio page and for additional info. Please contact the developer.">
-  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-  <link rel="stylesheet" href="main.css">
-  <!--google font-->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playwrite+GB+S:ital,wght@0,100..400;1,100..400&display=swap"
-    rel="stylesheet">
-  <!--end ! google font-->
-  <title>rishu</title>
-  <link rel="website icon" type="png" href="pictures/website-logo.png">
-  <script
-    type="text/javascript">window.$crisp = []; window.CRISP_WEBSITE_ID = "06d136e6-e7f8-46f5-80a3-8716bbaf4d4a"; (function () { d = document; s = d.createElement("script"); s.src = "https://client.crisp.chat/l.js"; s.async = 1; d.getElementsByTagName("head")[0].appendChild(s); })();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>karsh Login</title>
+<style>
+  /* Basic Reset */
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Fira Code', monospace; }
+  
+  body {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #1e1e2f; /* dark editor-like background */
+    color: #c5c6c7;
+  }
 
+  .login-container {
+    background-color: #2c2c3c;
+    padding: 40px 50px;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    text-align: center;
+    width: 100%;
+    max-width: 400px;
+  }
+
+  h1 {
+    color: #61dafb; /* coder-like neon blue */
+    margin-bottom: 30px;
+    font-size: 2em;
+    letter-spacing: 1px;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 20px;
+    border: none;
+    border-radius: 6px;
+    background-color: #1e1e2f;
+    color: #c5c6c7;
+    font-size: 1em;
+    outline: none;
+    transition: 0.2s;
+  }
+
+  input[type="text"]:focus {
+    background-color: #29293f;
+    box-shadow: 0 0 5px #61dafb;
+  }
+
+  button {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 6px;
+    background-color: #61dafb;
+    color: #1e1e2f;
+    font-weight: bold;
+    font-size: 1em;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  button:hover {
+    background-color: #21a1f1;
+    transform: translateY(-2px);
+  }
+
+  p {
+    margin-top: 15px;
+    font-size: 0.9em;
+    color: #888;
+  }
+</style>
 </head>
-
 <body>
-
-  <!-- <div id="preloader"></div> -->
-
-  <header style="position: relative;">
-
-    <div class="w3-top" class="header" id="home">
-      <div class="w3-bar  w3-card w3-left-align w3-large heeder-large-screen" style="background-color: #000015;">
-        <a class="w3-bar-item w3-button w3-hide-medium w3-hide-large w3-right w3-padding-large w3-hover-black w3-large "
-          href="javascript:void(0);" onclick="myFunction()" title="Toggle Navigation Menu"><i
-            class="fa fa-bars"></i></a>
-        <a href="#about" class="w3-bar-item w3-button w3-padding-large  w3-hover-black">rishu</a>
-        <div>
-          <a href="#about" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-black">About</a>
-          <a href="#projects" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-black"> Our
-            Projects</a>
-          <!-- <a href="#shop" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-black">Shop</a> -->
-          <a href="#events" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-black">Events</a>
-          <a href="#contact" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-black">Contact</a>
-          <a href="./@spyder=developer.section.acknowledgement/id=spyder.0001/admin.html" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-black">Admin</a>
-        </div>
-
-      </div>
-
-      <!-- Navbar on small screens -->
-      <div id="navDemo" class="w3-bar-block  w3-hide w3-hide-large w3-hide-medium w3-large">
-        <a href="#about" class="w3-bar-item w3-button w3-padding-large" onclick="myFunction()">About</a>
-        <a href="#projects" class="w3-bar-item w3-button w3-padding-large" onclick="myFunction()">Our Projects</a>
-        <!-- <a href="#shop" class="w3-bar-item w3-button w3-padding-large" onclick="myFunction()">Shop</a> -->
-        <a href="#events" class="w3-bar-item w3-button w3-padding-large" onclick="myFunction()">Events</a>
-        <a href="#contact" class="w3-bar-item w3-button w3-padding-large" onclick="myFunction()">Contact</a>
-        <a href="./@spyder=developer.section.acknowledgement/id=spyder.0001/admin.html" class="w3-bar-item w3-button w3-padding-large" onclick="myFunction()">Admin</a>
-      </div>
-    </div>
-  </header>
-  <section>
-    <div class="hero" id="about">
-      <div class="hero-description">
-        <div class="hero-text">
-          <h1 class="hero-title">Rishu</h1>
-
-          <!-- typing effect on main title with using of js and some css effects -->
-
-          <p id="spyder"></p>
-
-          <!-- end ! typing effect  -->
-
-          <p class="my-5">Heyy There , Rishu this side , I am a self taught programmer .
-            I can create websites and webapps.<br> Masters in HTML , CSS & JS.🙂❤️ <br>
-            UI/UX Design by KOMAL❤️❤️
-          </p>
-          <span class="w3-text-white social" style="margin-top:050px">
-            <p>Follow us on Social media</p>
-            <div class="w3-margin-top">
-              <a href="https://www.facebook.com/vrs.codes" target="_blank"> <i
-                  class="fa fa-facebook-official w3-hover-opacity icons"></i></a>
-              <a href="https://www.instagram.com/heyy_riishu" target="_blank"><i
-                  class="fa fa-instagram w3-hover-opacity icons"></i></a>
-              <a href="https://www.youtube.com/@techierishu" target="_blank"><i
-                  class="fa fa-youtube w3-hover-opacity icons"></i></a>
-              <a href="https://www.snapchat.com/add/heyy_riishu?share_id=81m0dIkOqDc&locale=en-IN" target="_blank"><i
-                  class="fa fa-snapchat w3-hover-opacity icons"></i></a>
-              <!--  <a href="#"><i class="fa fa-pinterest-p w3-hover-opacity icons" ></i></a> -->
-              <a href="https://t.me/deziner_happy" target="_blank"><i
-                  class="fa fa-telegram w3-hover-opacity icons"></i></a>
-              <!-- <a href="#"><i class="fa fa-linkedin w3-hover-opacity icons"></i></a> -->
-            </div>
-          </span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-
-  <main style="padding-bottom:20px ;">
-    <h2 class="title" id="projects">My Projects</h2>
-    <div class="games">
-
-      <!--Real Time Chat Application-->
-        <div class="game-list">
-        <a href="https://jinnie-chats.onrender.com">
-          <img src="./pictures/jinnie-chats.png" alt="Jinnie Chat"
-            style="width:100px; height: 100px; margin-left: 50px;" />
-          <h3>Real Time Chat App</h3>
-          
-            <button class="w3-btn w3-red w3-round view-more-btn cross-road-btn" style="margin-left: 30%;">Chat Now</button>
-         </a>
-       
-      </div>
-
-      <!--MEGA PROJECTS-->
-      <div class="game-list">
-        <img src="./pictures/FRIDAY.png" alt="FRIDAY" style="width:100px; height: 100px; margin-left: 25px;" />
-        <h5>FRIDAY (Voice Assistant) </h5>
-        <a href="https://youtube.com/shorts/ePiLheF_xaQ?si=xGNSOuBgZYX4snf3">
-          <button class="btn"><i class="fa fa-download"></i>Watch Demo</button></a>
-      </div>
-      <!---->
-
-
-      
-      <div class="game-list">
-        <a href="./@spyder=game-center/game-id/cross-the-road/index.html">
-          <img src="data:image/jpeg;base64,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" alt="Cross-the-road"
-            style="width:100px; height: 100px; margin-left: 30px;" />
-          <h3>Cross the Road</h3>
-          
-            <button class="w3-btn w3-red w3-round view-more-btn cross-road-btn"> Play Online </button>
-         </a>
-       
-      </div>
-      <!-- -->
-      <div class="game-list">
-        <img src="./pictures/WEATHER...png" alt="Weather" style="width:100px; height: 100px; margin-left: 2px;" />
-        <h3>Weather App </h3>
-        <a href="./@spyder=game-center/weatherbyriishu.apk">
-          <button class="btn"><i class="fa fa-download"></i> Download</button></a>
-
-      </div>
-      <!---->
-
-      <!-- -->
-      <div class="game-list">
-
-        <img
-          src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Tic_tac_toe.svg/522px-Tic_tac_toe.svg.png?20070506052204"
-          alt="Tic Tac Toe" class="project-img" />
-        <h3>Tic Tac Toe</h3>
-        <a href="./@spyder=game-center/tic-tac-toe.apk">
-          <button class="btn" style="margin-right: 0px;"><i class="fa fa-download"></i> Download</button></a>
-        <a href="@spyder=game-center/game-id/tic tac toe/index.html">
-          <button class="w3-btn w3-red w3-round view-more-btn"
-            style="width: 100px; padding:1px;  margin-bottom:05px; margin-top: 10px;">Play Online</button>
-        </a>
-      </div>
-      <!---->
-
-      <div class="game-list">
-        <a href="@spyder=game-center/game-id/calculator/calculator.html">
-          <img src="https://www.svgrepo.com/show/499849/calculator.svg" alt="Calculator"
-            style="width:100px; height: 100px; margin-left: 15px;" />
-          <h3>Calculator</h3>
-          <p class="calculator-testing">
-            Developer: Rishu</p>
-        </a>
-      </div>
-
-      <!-- <div class="game-list">
-        <a href="@spyder=game-center/game-id/password generator/password-generator.html">
-          <img src="https://img.icons8.com/?size=512&id=ZDuFSabUACgi&format=png" alt="Password Generator"
-            style="width:100px; height: 85px; margin-left: 50px;" />
-          <h3>Password Generator</h3>
-          <p class="calculator-testing" style="margin-left: 20px;">Developer: Rishu</p>
-        </a>
-      </div> -->
-      <!---->
-
-
-
-
-    </div>
-
-
-    <a href="@spyder=game-center/game-id/more-projects.html">
-      <button class="w3-btn w3-red w3-round view-more-btn"
-        style="width: 100px; padding:3px 10px !important; margin-left: 40% !important;">View More</button></a>
-    <!-- <a href="@spyder=game-center/More Projects/mod-apk/mod-apk.html"> -->
-    <!-- <button class="w3-btn w3-red w3-round mod-apk-view-btn" style="width: 150px; padding:3px 10px !important; margin-left: 30% ; margin-top: 20px;">Our Mod APKs</button></a> -->
-    <!--   <a href="book-store/standard-selection.html">
-          <button class="w3-btn w3-red w3-round mod-apk-view-btn" style="width: 150px; padding:3px 10px !important; margin-left: 16% !important;">Get Your Books</button></a> -->
-
-
-
-
-    <!-- <div class="store" id="shop">
-         <h2 class="title">Our Store</h2>
-        
-        <div class="game-store">
-
-          <div class="game-store-list">
-            <div class="game-image">
-              <a href="phone-class-selector@spyderInc/store@phone-selector.spyderInc.html">
-              <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQEQ7ODd26bSpOZ-8MJt80n4ne7SxbgjH6G5w&usqp=CAU" alt="Phones under 20K"/> </a>
-            </div>
-            <div class="store-text-description">
-             <h4> Phones</h4>
-             <span> 08 items </span>
-             <span></span>
-             
-            </div>
-
-          </div>
-          <div class="game-store-list">
-            <div class="game-image">
-              <img src="https://spaces.w3schools.com/images/qAgZDCgb7go.jpg" alt="Photo by Maverick Timotius | Unsplash"/>
-            </div>
-            <div class="store-text-description">
-              <h4>Server</h4>
-              <span> 15 items </span>
-              <span>$50</span>
-              <span></span>
-            </div> 
-
-          </div>
-          <div class="game-store-list">
-            <div class="game-image">
-              <img src="https://spaces.w3schools.com/images/xo-MJALGPrI.jpg" alt="Photo by Emiliano Cicero | Unsplash"/>
-            </div>
-            <div class="store-text-description">
-              <h4>Mouse</h4>
-              <span> 25 items </span>
-              <span>$8</span>
-            </div>
-
-          </div>
-          <div class="game-store-list">
-            <div class="game-image">
-              <img src="https://spaces.w3schools.com/images/sYhyE3CeTy4.jpg"  alt="Photo by wu yi | Unsplash"/>
-            </div>
-            <div class="store-text-description">
-              <h4>Headphone</h4>
-              <span> 40 items </span>
-              <span>$18</span>
-            </div>
-
-          </div>
-          <div class="game-store-list">
-            <div class="game-image">
-              <img src="https://spaces.w3schools.com/images/Hpaq-kBcYHk.jpg" alt="Photo by Alienware | Unsplash"/>
-            </div>
-            <div class="store-text-description">
-              <h4>Monitor</h4>
-              <span> 10 items </span>
-              <span>$20</span>
-            </div>
-             
-          </div>
-          <div class="game-store-list">
-            <div class="game-image">
-              <img src="https://spaces.w3schools.com/images/dkb3wApu5XQ.jpg" alt="Photo by Sean Stone | Unsplash"/>
-            </div>
-            <div class="store-text-description">
-              <h4>Joystick</h4>
-              <span> 10 items </span>
-              <span>$20</span>
-            </div>
-
-          </div>
-
-        </div>
-      </div>  -->
-    <!---->
-
-
-
-
-    <!---->
-    <h2 class="title" id="games">About Me</h2>
-    <div class="game-store">
-      <div class="game-store-list">
-        <div class="our-team">
-          <a href="@spyder=developer.section.acknowledgement/id=spyder.0001/dev-id=@spyder.0001.html">
-            <img src="pictures/me.jpg" alt="SPYDER" />
-            <div class="store-text-description">
-              <h4>Rishu Maurya</h4>
-              <span>Senior Developer</span>
-          </a>
-        </div>
-      </div>
-    </div>
-
-
-
-       <div class="game-store-list">
-          <div class="our-team">
-            <a href="./@spyder=developer.section.acknowledgement/komal.html">
-            <img src="pictures/komal.jpg" alt="Komal Sharma"/>
-          <div class="store-text-description">
-            <h4>Komal Sharma</h4>
-            <span>UI/UX Designer</span></a>
-          </div>
-          </div>
-        </div>  
-    </div>
-    <!-- <a href="@spyder=developer.section.acknowledgement/team-mates/team-mates.html">
-      <button class="w3-btn w3-red w3-round view-more-btn" style="width: 140px; padding:5px 10px !important; margin-left: 42% !important;">Our Team-mates</button></a> -->
-
-    <div class="event" id="events">
-      <h2 class="title">Upcoming Events</h2>
-
-      <div class="event-hero" style="position: relative; ">
-
-
-        <div class="event-text">
-          <h2 class="badge" style=" background-color: orange; color:#000015 ;padding:10px"> Video Game Challenge |
-            Tuesday Dec 24</h2>
-          <h1 class="event-title">A Battle Royal world beyond your imagination.</h1>
-
-
-          <p>On 24th Dec 2025, We are going to host a CHALLENGE in BGMI worth of ₹5000. Room I'd and passcodes are
-            delivered on your E-mail.</p>
-          <h4>Book Your Slot </h4>
-          <div>
-            <form action="https://api.web3forms.com/submit" method="post">
-              <input type="hidden" name="access_key" value="e540dbf1-84df-45e5-b93b-713e9c38bc8d">
-              <label id="icon" for="name">Name</label>
-              <br>
-              <input type="text" name="event-registration-___NAME" id="name" placeholder="Name" required>
-              <br>
-              <br>
-              <label id="icon" for="name">Email</label>
-              <br>
-              <input type="email" name="email" id="name" placeholder="Email" required>
-              <input type="checkbox" name="botcheck" class="hidden" style="display: none;">
-          </div>
-          <button class="w3-btn w3-red w3-margin-top w3-round" type="submit">Register</button></form>
-        </div>
-        <div class="event-image">
-          <img src="https://spaces.w3schools.com/images/king-lip-mp295uolfDs-unsplash-removebg-preview.png"
-            alt="erik-mclean" />
-        </div>
-
-      </div>
-
-    </div>
-    <div>
-      <!--Buy Coffee For Us......-->
-      <div class="event" id="events">
-        <h2 class="title">Support Us.....!</h2>
-
-        <div class="event-hero" style="position: relative; ">
-
-
-          <div class="event-text">
-            <h3 class="badge" style=" background-color: orange; color:#000015 ;padding:10px"> Scan & Buy a coffee for
-              us.</h3>
-            <!-- <h2 class="event-title-payment">or<br>UPI: jinniecrafts@okicici</h2>  -->
-            <!-- <p>Your little contribution helps us alot....!</p>   -->
-
-            <a href="upi://pay?pa=khrgoshh@oksbi&pn=khrgosh&aid=uGICAgKDSy5zHRg">
-              <img src="https://seeklogo.com/images/G/google-pay-tez-logo-CFC8957086-seeklogo.com.png"
-                class="payment-logo"></a>
-
-            <a href="upi://pay?pa=khrgoshh@oksbi&pn=khrgosh&aid=uGICAgKDSy5zHRg">
-              <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/phonepe-icon.png"
-                class="payment-logo"></a>
-
-            <a href="upi://pay?pa=khrgoshh@oksbi&pn=khrgosh&aid=uGICAgKDSy5zHRg">
-              <img src="https://img.icons8.com/?size=1x&id=68067&format=png" class="payment-logo"></a>
-
-            <a href="upi://pay?pa=khrgoshh@oksbi&pn=khrgosh&aid=uGICAgKDSy5zHRg">
-              <img src="https://www.vectorlogo.zone/logos/upi/upi-icon.svg" class="payment-logo"></a>
-
-          </div>
-          <div class="event-image-payment">
-            <img src="./pictures/payment.png" alt="payment qr">
-          </div>
-
-        </div>
-      </div>
-      <div>
-        <!---->
-
-        <h2 class="title">Reach out to us</h2>
-        <div class="contact" id="contact" style="padding-bottom: 10px !important;">
-          <div class="contact-list contact-address">
-            <h5><span><i class="fa fa-map-marker w3-xlarge w3-text-light-grey"></i></span>Address</h5>
-            <p>Rasra, Uttar Pradesh 221712 </p>
-            <p>India </p>
-          </div>
-          <div class="contact-list">
-            <h5><span><i class="fa fa-envelope w3-xlarge w3-text-light-grey"></i></span>Receive weekly update email</h5>
-            <form action="https://api.web3forms.com/submit" method="post">
-              <input type="hidden" name="access_key" value="e540dbf1-84df-45e5-b93b-713e9c38bc8d">
-              <div class="email-contact">
-                <input type="email" name="newsletter-subscriber" placeholder="Email" style="margin: 8px 0px !important;"
-                  required>
-
-                <button class="w3-btn w3-red w3-round "
-                  style="width: 100px; padding:3px 10px !important">Subscribe</button>
-                <input type="checkbox" name="botcheck" class="hidden" style="display: none;">
-            </form>
-          </div>
-
-        </div>
-        <div class="contact-list">
-          <h5><span><i class="fa fa-envelope w3-xlarge w3-text-light-grey"></i></span>Email</h5>
-          <p><a href="mailto:rishumaurya990@gmail.com">rishumaurya990@gmail.com</a></p>
-
-
-        </div>
-
-      </div>
-    </div>
-
-  </main>
-
-  <!---->
-
-  <!---->
-
-  <div class="w3-padding w3-center" style="background: #FFF4A3;padding: 10px 0px !important; color:#282A35; ">
-    <div style="display: flex; justify-content: center;align-items: center; flex-wrap: wrap;">
-      <p style="margin: 10px !important ">Proudly created by Rishu with Jinnie <i class="fa fa-heart"></i>| Copyright
-        reserved | Copyright claimed to </p>
-      <a href="#">
-        <button class="w3-margin-top w3-btn w3-text-white  w3-round-xxlarge"
-          style=" background-color:#282A35;padding: 8px 25px;  margin:0px  !important"> Rishu </button></a>
-    </div>
+  <div class="login-container">
+    <h1>Secure Access</h1>
+    <input type="text" id="code" placeholder="Enter Secure code">
+    <button id="go">Enter</button>
+    <p>Powered by karsh Securities.</p>
   </div>
 
-  <script>
-    // Used to toggle the menu on small screens when clicking on the menu button
-    function myFunction() {
-      var x = document.getElementById("navDemo");
-      if (x.className.indexOf("w3-show") == -1) {
-        x.className += " w3-show";
-      } else {
-        x.className = x.className.replace(" w3-show", "");
-      }
+ <script>
+  const input = document.getElementById("code");
+  const button = document.getElementById("go");
+
+  async function login() {
+    const code = input.value.trim();
+
+    // ✅ Optional: require at least 6 characters (but not fixed length)
+    if (code.length < 6) {
+      return alert("Please enter at least 6 characters for Secure login...");
     }
-  </script>
-  <script src="script.js"></script>
 
+    try {
+      const res = await fetch("/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ code })
+      });
 
-  <script>
+      if (res.ok) {
+        input.value = ""; // ✅ Clear input field after successful submission
+        window.location.href = "/protected/index.html";
+      } else {
+        alert("Invalid or expired code");
+        input.value = ""; // ✅ Clear input on failure
+      }
+    } catch (err) {
+      alert("An error occurred. Try again...");
+      input.value = ""; // ✅ Clear on error
+    }
+  }
 
-    var loader = document.getElementById("preloader");
-    window.addEventListener("load", function () {
-      loader.style.display = "none";
-    })
+  button.addEventListener("click", login);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") login();
+  });
 
-
-  </script>
-
+  // ✅ Allow everything except whitespace at start or end (trim automatically)
+  // If you still want a max length (e.g. 20 chars), uncomment below line:
+  // input.setAttribute("maxlength", "20");
+</script>
 
 </body>
-
 </html>
