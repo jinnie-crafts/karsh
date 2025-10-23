@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form id="customForm">
+  <input type="text" name="name" placeholder="Name" required /><br>
+  <input type="email" name="email" placeholder="Email" required /><br>
+  <textarea name="message" placeholder="Message" required></textarea><br>
+  <input type="file" id="fileInput" required /><br>
+  <button type="submit">Submit</button>
+</form>
+
+<script>
+  const form = document.getElementById('customForm');
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const name = form.elements['name'].value;
+    const email = form.elements['email'].value;
+    const message = form.elements['message'].value;
+    const file = document.getElementById('fileInput').files[0];
+
+    const reader = new FileReader();
+    reader.onload = async function () {
+      const fileData = reader.result.split(',')[1]; // Remove base64 header
+
+      const payload = {
+        name,
+        email,
+        message,
+        fileName: file.name,
+        fileType: file.type,
+        fileData
+      };
+
+      const response = await fetch('https://script.google.com/macros/s/AKfycbwiGx57k7l_e1TQIqwdplZGakXz3NX0U7TofyswtjhCW4Wz2WrpKs5iT7KyvvV3-oIPcA/exec', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const result = await response.json();
+      alert(result.result === 'success' ? 'Form submitted!' : `Error: ${result.error}`);
+    };
+
+    reader.readAsDataURL(file);
+  });
+</script>
+
+</body>
+</html>
