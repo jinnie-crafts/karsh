@@ -19,7 +19,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 // TOTP secret
-const SECRET = process.env.TOTP_SECRET || "karsh.beta.jinnie.akka.bcha";
+const SECRET = process.env.TOTP_SECRET || "karsh4beta4jinnie4akka2bcha";
 totp.options = { step: 120 }; // 2 minutes step
 
 // In-memory session tokens
@@ -78,3 +78,4 @@ app.get("*", (req, res) => {
 // Start server
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
+
