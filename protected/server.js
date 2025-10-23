@@ -14,7 +14,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 // TOTP secret from environment variable
-const SECRET = process.env.TOTP_SECRET || "JBSW.Y3DP.EHPK3P.XP";
+const SECRET = process.env.TOTP_SECRET || "karsh.beta.jinnie.akka.bcha";
 totp.options = { step: 300 }; // 5 minutes step
 
 // In-memory token store
@@ -75,3 +75,4 @@ app.get("*", (req, res) => {
 // Start server
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
+
