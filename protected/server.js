@@ -7,7 +7,6 @@ import bcrypt from "bcryptjs";
 import "dotenv/config";
 import { fileURLToPath } from "url";
 
-// --- Fix for ES Modules ---
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -20,10 +19,8 @@ if (!PASSWORD_HASH) {
   process.exit(1);
 }
 
-// In-memory session store
 const validTokens = new Set();
 
-// Generate random auth token
 function generateToken() {
   return crypto.randomBytes(32).toString("hex");
 }
@@ -33,7 +30,7 @@ app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-// Middleware: requires valid cookie
+// Auth middleware
 function requireAuth(req, res, next) {
   const token = req.cookies?.auth_token;
   if (!token || !validTokens.has(token)) {
@@ -44,7 +41,6 @@ function requireAuth(req, res, next) {
 
 // --- ROUTES ---
 
-// LOGIN VERIFY
 app.post("/verify", async (req, res) => {
   const { password } = req.body;
   if (!password) return res.status(400).json({ ok: false, error: "Password required" });
@@ -56,21 +52,19 @@ app.post("/verify", async (req, res) => {
     const token = generateToken();
     validTokens.add(token);
 
-    // ✅ session cookie (expires on browser/tab close)
     res.cookie("auth_token", token, {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
     });
 
-    return res.json({ ok: true });
+    res.json({ ok: true });
   } catch (err) {
     console.error("Password check failed:", err);
-    return res.status(500).json({ ok: false, error: "Server error" });
+    res.status(500).json({ ok: false, error: "Server error" });
   }
 });
 
-// LOGOUT
 app.post("/logout", (req, res) => {
   const token = req.cookies?.auth_token;
   if (token) validTokens.delete(token);
@@ -84,26 +78,31 @@ app.post("/logout", (req, res) => {
   res.json({ ok: true });
 });
 
-// --- STATIC PATHS ---
+// --- PATHS ---
 const publicPath = path.join(__dirname, "../public"); // login page
-const sitePath = path.join(__dirname, "site");        // protected site
+const sitePath = path.join(__dirname, "site");        // protected main site
 
-// Serve login page (public)
+// Serve public login page
 app.use(express.static(publicPath));
 
-// Serve protected site (auth required)
+// Serve protected site (no extra /site/ layer)
 app.use("/protected", requireAuth, express.static(sitePath));
 
-// SPA fallback for any route under /protected/*
+// When user visits /protected directly, show main site index.html
+app.get("/protected", requireAuth, (req, res) => {
+  res.sendFile(path.join(sitePath, "index.html"));
+});
+
+// Catch all for SPA routing inside site/
 app.get("/protected/*", requireAuth, (req, res) => {
   res.sendFile(path.join(sitePath, "index.html"));
 });
 
-// Default fallback → login page
+// Fallback to login page
 app.get("*", (req, res) => {
   res.sendFile(path.join(publicPath, "index.html"));
 });
 
-// --- START SERVER ---
+// --- START ---
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
