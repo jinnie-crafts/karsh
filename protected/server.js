@@ -4,23 +4,26 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
-import 'dotenv/config';
+import "dotenv/config";
 import { fileURLToPath } from "url";
 
+// --- Fix for ES Modules ---
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 
 // --- CONFIG ---
-const PASSWORD_HASH = process.env.PASSWORD_HASH; // hashed password from .env
+const PASSWORD_HASH = process.env.PASSWORD_HASH;
 if (!PASSWORD_HASH) {
   console.error("❌ Missing PASSWORD_HASH in environment variables");
   process.exit(1);
 }
 
+// In-memory session store
 const validTokens = new Set();
 
+// Generate random auth token
 function generateToken() {
   return crypto.randomBytes(32).toString("hex");
 }
@@ -30,7 +33,7 @@ app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-// Auth middleware
+// Middleware: requires valid cookie
 function requireAuth(req, res, next) {
   const token = req.cookies?.auth_token;
   if (!token || !validTokens.has(token)) {
@@ -41,7 +44,7 @@ function requireAuth(req, res, next) {
 
 // --- ROUTES ---
 
-// Login
+// LOGIN VERIFY
 app.post("/verify", async (req, res) => {
   const { password } = req.body;
   if (!password) return res.status(400).json({ ok: false, error: "Password required" });
@@ -53,12 +56,11 @@ app.post("/verify", async (req, res) => {
     const token = generateToken();
     validTokens.add(token);
 
-    // ✅ Session cookie (expires on tab/browser close)
+    // ✅ session cookie (expires on browser/tab close)
     res.cookie("auth_token", token, {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
-      // Do NOT set maxAge → session cookie
     });
 
     return res.json({ ok: true });
@@ -68,7 +70,7 @@ app.post("/verify", async (req, res) => {
   }
 });
 
-// Logout
+// LOGOUT
 app.post("/logout", (req, res) => {
   const token = req.cookies?.auth_token;
   if (token) validTokens.delete(token);
@@ -84,20 +86,20 @@ app.post("/logout", (req, res) => {
 
 // --- STATIC PATHS ---
 const publicPath = path.join(__dirname, "../public"); // login page
-const protectedPath = path.join(__dirname, "site");   // main website content
+const sitePath = path.join(__dirname, "site");        // protected site
 
-// Serve login page
+// Serve login page (public)
 app.use(express.static(publicPath));
 
-// Serve protected site after authentication
-app.use("/protected/site", requireAuth, express.static(protectedPath));
+// Serve protected site (auth required)
+app.use("/protected", requireAuth, express.static(sitePath));
 
-// SPA fallback for protected routes
-app.get("/protected/site/*", requireAuth, (req, res) => {
-  res.sendFile(path.join(protectedPath, "index.html"));
+// SPA fallback for any route under /protected/*
+app.get("/protected/*", requireAuth, (req, res) => {
+  res.sendFile(path.join(sitePath, "index.html"));
 });
 
-// Fallback for public routes
+// Default fallback → login page
 app.get("*", (req, res) => {
   res.sendFile(path.join(publicPath, "index.html"));
 });
