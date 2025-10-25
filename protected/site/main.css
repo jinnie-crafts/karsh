@@ -102,30 +102,111 @@ h5s{
     text-align: center;
 }
 
-.games{
-    display: flex;
-    
-    flex-wrap: wrap;
-    align-items: center;
-    /* background-color:	rgba(0, 0, 47,0.3); */
-    justify-content: space-evenly;
+/* === Project Section Layout === */
+.games {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+  align-items: stretch;
 }
-.game-list{
-    margin: 70px;;
-    padding: 10px;
-    height: 200px;
-    width:250px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    border:1px solid gray;
-    background: rgba(255, 75, 255, 0.1);
-    box-shadow: 0 8px 40px 0 rgba(45, 57, 231, 0.37);
-    backdrop-filter: blur( 4px );
-    -webkit-backdrop-filter: blur( 4px );
-    border-radius: 10px;
-    border: 1px solid rgba( 255, 255, 255, 0.18 );
+
+.game-list {
+  margin: 30px;
+  padding: 20px 10px;
+  height: 320px;
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 75, 255, 0.1);
+  box-shadow: 0 8px 40px 0 rgba(45, 57, 231, 0.37);
+  backdrop-filter: blur(4px);
+  border-radius: 12px;
+  box-sizing: border-box;
+  transition: all 0.35s ease;
 }
+
+.game-list:hover {
+  transform: translateY(-6px) scale(1.05);
+  box-shadow: 0 12px 45px rgba(90, 95, 255, 0.6);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.game-list img {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  margin-bottom: 5px;
+  transition: transform 0.3s ease;
+}
+
+.game-list:hover img {
+  transform: scale(1.1);
+}
+
+.game-list h3 {
+  color: white;
+  font-size: 20px;
+  margin: 5px 0;
+}
+
+/* === Button Group === */
+.button-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.button-group a {
+  text-decoration: none;
+}
+
+/* === Button Style === */
+.btn-primary {
+  background: linear-gradient(90deg, #ff4bff, #5b6bff);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 0 0 rgba(255, 255, 255, 0);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(90deg, #ff7cff, #7988ff);
+  box-shadow: 0 0 12px rgba(255, 120, 255, 0.6);
+  transform: scale(1.05);
+}
+
+/* === Responsive === */
+@media (max-width: 768px) {
+  .game-list {
+    width: 45%;
+    height: 280px;
+  }
+}
+
+@media (max-width: 500px) {
+  .game-list {
+    width: 60%;
+    height: auto;
+  }
+}
+
+
+
+/* .game-list button{
+    margin-top: 8px;
+    align-self: center;
+} */
 .game-list:hover{
     transform: scale(1.05);
 }
@@ -170,7 +251,7 @@ display: flex;
 flex-direction: column;
      
 } 
-h4{
+h4{ 
     color:white;
     font-weight: 700;
 }
@@ -484,21 +565,15 @@ html {
 body{
   background-color: transparent;
 }
-#spyder{
-    margin-left: none;
-    margin-right: 16%;
-    font: 500 1.95rem monospace;
-    background-color: transparent;
-    color: #86c8a8;
-    text-shadow: 0.01em 0.01em 0.2em #86c8a8;
+/* Typing container */
+.typing-container {
+  display: block;        /* makes the span occupy full width */
+  text-align: center;    /* center the text horizontally */
+  margin-bottom: 15px;   /* gap between typing text and paragraph */
 }
-#spyder::after {
-    content: "|";
-    animation: blink 1s step-end infinite;
-}
-@keyframes blink {
-    50% {opacity: 0;}
-}
+
+
+
 
   .under-construction{
     color: #f8fafb;
@@ -609,3 +684,143 @@ body{
     --radius: -250;
     background: var(--secondary); }
 /*  */
+
+/* === View More Buttons Section === */
+.view-more-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 40px; /* more space between buttons on desktop */
+  margin-top: 50px;
+  margin-bottom: 70px;
+  text-align: center;
+}
+
+/* Button styling */
+.view-more-btn {
+  background: linear-gradient(90deg, #ff4bff, #5b6bff);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 10px 25px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 0 rgba(255, 255, 255, 0);
+}
+
+/* Hover effect */
+.view-more-btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 14px rgba(255, 120, 255, 0.6);
+  background: linear-gradient(90deg, #ff7cff, #7988ff);
+}
+
+/* === Responsive: keep buttons in one line on all screens === */
+@media (max-width: 768px) {
+  .view-more-section {
+    flex-direction: row;
+    justify-content: center;
+    gap: 20px; /* smaller gap on mobile but still side by side */
+    margin-top: 40px;
+  }
+
+  .view-more-btn {
+    font-size: 14px;
+    padding: 8px 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .view-more-section {
+    gap: 15px;
+  }
+
+  .view-more-btn {
+    font-size: 13px;
+    padding: 7px 15px;
+  }
+}
+
+
+
+/*Typing effect animation*/
+/* Hero container aligned with social icons */
+.hero-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* left aligned */
+  justify-content: center;
+  width: 100%;
+  position: relative;
+  padding-left: 0px; /* match left margin of social icons */
+}
+
+/* Main title */
+.hero-title {
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 80px;
+  color: orange;
+  margin: 0;
+  position: relative;
+  line-height: 1.1;
+}
+
+/* Typing effect */
+#spyder {
+  display: inline-block;
+  font: 500 1.8rem monospace;
+  color: #86c8a8;
+  text-shadow: 0.01em 0.01em 0.2em #86c8a8;
+  min-width: 220px; /* reserve space */
+  white-space: nowrap;
+  vertical-align: top;
+}
+
+/* blinking cursor */
+#spyder::after {
+  content: "|";
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+/* Paragraph under typing */
+.hero-subtext {
+  color: white;
+  margin-top: 25px;
+  font-size: 16px;
+  max-width: 600px;
+  
+}
+
+/* Desktop: typing as superscript */
+@media screen and (min-width: 769px) {
+  #spyder {
+    position: absolute;
+    top: -0.2em;      /* slightly above RISHU baseline */
+    left: 100%;       /* immediately after RISHU */
+    margin-left: 10px; /* small gap to avoid overlap */
+    font-size: 30px;
+  }
+}
+
+/* Mobile: typing below main title */
+@media screen and (max-width: 768px) {
+  #spyder {
+    position: static;
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 20px;
+    min-width: 100%; /* reserved space for one line */
+  }
+
+  .hero-subtext {
+    margin-top: 05px;
+    font-size: 14px;
+  }
+}
