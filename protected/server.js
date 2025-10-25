@@ -38,9 +38,12 @@ function requireAuth(req, res, next) {
   }
   next();
 }
-
 // --- ROUTES ---
 
+// ✅ Health check (for Render heartbeat)
+app.get("/health", (req, res) => res.send("ok"));
+
+//Login 
 app.post("/verify", async (req, res) => {
   const { password } = req.body;
   if (!password) return res.status(400).json({ ok: false, error: "Password required" });
@@ -103,6 +106,6 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(publicPath, "index.html"));
 });
 
-// --- START ---
+// --- STARTs SERVER ---
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
