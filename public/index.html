@@ -173,79 +173,97 @@ input.addEventListener("keydown",(e)=>{if(e.key==="Enter") login();});
 </div>
 
 <script>
-const input = document.getElementById("password");
-const button = document.getElementById("loginBtn");
-const spinner = document.getElementById("spinner");
-const toggle = document.getElementById("togglePassword");
-const eyeIcon = document.getElementById("eye-icon");
-const errorMessage = document.getElementById("error-message");
-const loginBox = document.getElementById("login-box");
-let errorTimeout;
 
-let showPassword = false;
-toggle.addEventListener("click", ()=>{
-  showPassword = !showPassword;
-  input.type = showPassword ? "text" : "password";
+<audio id="errorSound" src="./error.mp3" preload="auto"></audio>
 
-  // Change icon
-  if(showPassword){
-    eyeIcon.setAttribute("d","M2 2L22 22M12 5C7 5 2.73 8.11 1 12c1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7z"); // Crossed eye
-  }else{
-    eyeIcon.setAttribute("d","M12 5C7 5 2.73 8.11 1 12c1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"); // Eye
-  }
-});
+  const input = document.getElementById("password");
+  const button = document.getElementById("loginBtn");
+  const spinner = document.getElementById("spinner");
+  const toggle = document.getElementById("togglePassword");
+  const errorMessage = document.getElementById("errorMessage");
+  const errorSound = document.getElementById("errorSound");
 
-// Show error message
-function showError(message){
-  clearTimeout(errorTimeout);
-  errorMessage.textContent = message;
-  errorMessage.style.opacity="1";
+  // Detect if user is on mobile
+  const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile/i.test(navigator.userAgent);
 
-  loginBox.classList.remove("shake");
-  void loginBox.offsetWidth;
-  loginBox.classList.add("shake");
-
-  errorTimeout = setTimeout(()=>{
-    errorMessage.style.opacity="0";
-    setTimeout(()=>errorMessage.textContent="",300);
-  },2000);
-}
-
-// Login function
-async function loginFunc(){
-  const password = input.value.trim();
-  if(!password){ showError("Please enter your password."); return; }
-
-  spinner.style.display="inline-block";
-  button.disabled=true;
-
-  try{
-    const res = await fetch("/verify",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      credentials:"include",
-      body:JSON.stringify({password})
-    });
-    const data = await res.json();
-    input.value="";
-    spinner.style.display="none";
-    button.disabled=false;
-
-    if(data.ok){
-      window.location.href="/protected/";
+  // Show/hide password toggle with eye icon
+  toggle.addEventListener("click", () => {
+    if (input.type === "password") {
+      input.type = "text";
+      toggle.innerHTML = "&#128065;"; // 👁️ open eye
     } else {
-      showError("Invalid password. Try again.");
+      input.type = "password";
+      toggle.innerHTML = "&#128068;"; // 🚫 crossed eye (or closed)
     }
-  }catch(err){
-    showError("Server error. Try again later.");
-    spinner.style.display="none";
-    button.disabled=false;
-    input.value="";
-  }
-}
+  });
 
-button.addEventListener("click",loginFunc);
-input.addEventListener("keydown",(e)=>{if(e.key==="Enter") loginFunc();});
+  // Function to give error feedback only on mobile
+  function playMobileErrorFeedback() {
+    if (!isMobile) return;
+    try {
+      // Vibrate for 200ms
+      if (navigator.vibrate) navigator.vibrate(200);
+      // Play short sound
+      errorSound.currentTime = 0;
+      errorSound.play().catch(() => {});
+    } catch (e) {
+      console.warn("Feedback failed:", e);
+    }
+  }
+
+  async function login() {
+    const password = input.value.trim();
+    if (!password) {
+      showError("Please enter your password.");
+      return;
+    }
+
+    spinner.style.display = "inline-block";
+    button.disabled = true;
+
+    try {
+      const res = await fetch("/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ password })
+      });
+      const data = await res.json();
+
+      spinner.style.display = "none";
+      button.disabled = false;
+      input.value = "";
+
+      if (data.ok) {
+        window.location.href = "/protected/site/index.html";
+      } else {
+        showError("Invalid password. Try again.");
+        playMobileErrorFeedback(); // 🎵📱 Only on mobile
+      }
+    } catch (err) {
+      showError("Server unreachable. Try again later.");
+      playMobileErrorFeedback(); // 🎵📱 Only on mobile
+      spinner.style.display = "none";
+      button.disabled = false;
+    }
+  }
+
+  function showError(message) {
+    errorMessage.textContent = message;
+    errorMessage.style.opacity = "1";
+    input.classList.add("shake");
+
+    clearTimeout(window.errorTimeout);
+    window.errorTimeout = setTimeout(() => {
+      errorMessage.style.opacity = "0";
+      setTimeout(() => (errorMessage.textContent = ""), 300);
+    }, 2000);
+
+    setTimeout(() => input.classList.remove("shake"), 500);
+  }
+
+  button.addEventListener("click", login);
+  input.addEventListener("keydown", e => { if (e.key === "Enter") login(); });
 </script>
 
 </body>
