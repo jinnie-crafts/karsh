@@ -30,7 +30,7 @@ app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-// Auth middleware
+// --- AUTH CHECK ---
 function requireAuth(req, res, next) {
   const token = req.cookies?.auth_token;
   if (!token || !validTokens.has(token)) {
@@ -38,12 +38,10 @@ function requireAuth(req, res, next) {
   }
   next();
 }
-// --- ROUTES ---
 
-// ✅ Health check (for Render heartbeat)
+// --- ROUTES ---
 app.get("/health", (req, res) => res.send("ok"));
 
-//Login 
 app.post("/verify", async (req, res) => {
   const { password } = req.body;
   if (!password) return res.status(400).json({ ok: false, error: "Password required" });
@@ -82,22 +80,22 @@ app.post("/logout", (req, res) => {
 });
 
 // --- PATHS ---
-const publicPath = path.join(__dirname, "../public"); // login page
-const sitePath = path.join(__dirname, "site");        // protected main site
+const publicPath = path.join(__dirname, "../public");
+const sitePath = path.join(__dirname, "site");
 
 // Serve public login page
 app.use(express.static(publicPath));
 
-// Serve protected site (no extra /site/ layer)
-app.use("/protected", requireAuth, express.static(sitePath));
+// ✅ Serve main site assets (CSS, JS, etc.)
+app.use("/protected/site", requireAuth, express.static(sitePath));
 
-// When user visits /protected directly, show main site index.html
-app.get("/protected", requireAuth, (req, res) => {
+// ✅ Serve main site index.html for /protected/site
+app.get("/protected/site", requireAuth, (req, res) => {
   res.sendFile(path.join(sitePath, "index.html"));
 });
 
-// Catch all for SPA routing inside site/
-app.get("/protected/*", requireAuth, (req, res) => {
+// ✅ SPA fallback for any deeper site route
+app.get("/protected/site/*", requireAuth, (req, res) => {
   res.sendFile(path.join(sitePath, "index.html"));
 });
 
@@ -106,6 +104,6 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(publicPath, "index.html"));
 });
 
-// --- STARTs SERVER ---
+// --- START SERVER ---
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
