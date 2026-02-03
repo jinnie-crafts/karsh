@@ -167,7 +167,7 @@ app.post("/verify", async (req, res) => {
   res.cookie("auth_token", token, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production"
+    secure: process.env.NODE_ENV === "production",
     path: "/"
   });
 
@@ -209,5 +209,6 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () =>
   console.log(`✅ Server running on http://localhost:${PORT}`)
 );
+
 
 
