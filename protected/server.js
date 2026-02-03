@@ -1,5 +1,4 @@
 import fs from "fs";
-import fetch from "node-fetch";
 import express from "express";
 import path from "path";
 import cors from "cors";
@@ -206,3 +205,4 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () =>
   console.log(`✅ Server running on http://localhost:${PORT}`)
 );
+
