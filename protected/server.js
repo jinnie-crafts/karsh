@@ -1,3 +1,6 @@
+import fs from "fs";
+import nodemailer from "nodemailer";
+import fetch from "node-fetch";
 import express from "express";
 import path from "path";
 import cors from "cors";
@@ -7,65 +10,144 @@ import bcrypt from "bcryptjs";
 import "dotenv/config";
 import { fileURLToPath } from "url";
 
+/* ------------------ SETUP ------------------ */
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// --- CONFIG ---
-const PASSWORD_HASH = process.env.PASSWORD_HASH;
-if (!PASSWORD_HASH) {
-  console.error("❌ Missing PASSWORD_HASH in environment variables");
-  process.exit(1);
-}
-
+/* ------------------ CONSTANTS ------------------ */
+const USERS_PATH = path.join(__dirname, "users.json");
 const validTokens = new Set();
 
 function generateToken() {
   return crypto.randomBytes(32).toString("hex");
 }
 
-// --- MIDDLEWARE ---
+/* ------------------ MIDDLEWARE ------------------ */
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-// --- AUTH CHECK ---
+/* ------------------ HELPERS ------------------ */
+function loadUsers() {
+  return JSON.parse(fs.readFileSync(USERS_PATH, "utf-8"));
+}
+
+function getClientIP(req) {
+  return (
+    req.headers["x-forwarded-for"]?.split(",")[0] ||
+    req.socket.remoteAddress ||
+    "Unknown"
+  );
+}
+
+async function getLocation(ip) {
+  try {
+    const res = await fetch(`https://ipapi.co/${ip}/json/`);
+    return await res.json();
+  } catch {
+    return {};
+  }
+}
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.ALERT_EMAIL,
+    pass: process.env.ALERT_EMAIL_PASS
+  }
+});
+
+async function sendLoginAlert(email, req) {
+  const ip = getClientIP(req);
+  const location = await getLocation(ip);
+
+  const message = `
+🚨 NEW LOGIN ALERT
+
+Email: ${email}
+IP: ${ip}
+City: ${location.city || "Unknown"}
+Country: ${location.country_name || "Unknown"}
+Time: ${new Date().toLocaleString()}
+`;
+
+  await transporter.sendMail({
+    from: `"Security Alert" <${process.env.ALERT_EMAIL}>`,
+    to: process.env.ALERT_EMAIL,
+    subject: "🚨 Login Detected",
+    text: message
+  });
+   // Telegram alert
+  await sendTelegramAlert(message);
+}
+
+//tg bot service login alert system
+async function sendTelegramAlert(message) {
+  const url = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`;
+
+  await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chat_id: process.env.TELEGRAM_CHAT_ID,
+      text: message
+    })
+  });
+}
+
+
+/* ------------------ AUTH MIDDLEWARE ------------------ */
 function requireAuth(req, res, next) {
   const token = req.cookies?.auth_token;
   if (!token || !validTokens.has(token)) {
-    return res.status(401).sendFile(path.join(__dirname, "../public/index.html"));
+    return res
+      .status(401)
+      .sendFile(path.join(__dirname, "../public/index.html"));
   }
   next();
 }
 
-// --- ROUTES ---
+/* ------------------ ROUTES ------------------ */
+
+// Health check
 app.get("/health", (req, res) => res.send("ok"));
 
+// Login (email + password)
 app.post("/verify", async (req, res) => {
-  const { password } = req.body;
-  if (!password) return res.status(400).json({ ok: false, error: "Password required" });
-
-  try {
-    const valid = await bcrypt.compare(password, PASSWORD_HASH);
-    if (!valid) return res.status(401).json({ ok: false, error: "Invalid password" });
-
-    const token = generateToken();
-    validTokens.add(token);
-
-    res.cookie("auth_token", token, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-    });
-
-    res.json({ ok: true });
-  } catch (err) {
-    console.error("Password check failed:", err);
-    res.status(500).json({ ok: false, error: "Server error" });
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ ok: false });
   }
+
+  const users = loadUsers();
+  const user = users[email];
+  if (!user) {
+    return res.status(401).json({ ok: false });
+  }
+
+  const valid = await bcrypt.compare(password, user.passwordHash);
+  if (!valid) {
+    return res.status(401).json({ ok: false });
+  }
+
+  const token = generateToken();
+  validTokens.add(token);
+
+  res.cookie("auth_token", token, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production"
+    // session cookie (dies on browser close)
+  });
+
+  await sendLoginAlert(email, req);
+
+  res.json({ ok: true });
 });
 
+// Logout
 app.post("/logout", (req, res) => {
   const token = req.cookies?.auth_token;
   if (token) validTokens.delete(token);
@@ -73,37 +155,37 @@ app.post("/logout", (req, res) => {
   res.clearCookie("auth_token", {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: process.env.NODE_ENV === "production"
   });
 
   res.json({ ok: true });
 });
 
-// --- PATHS ---
+/* ------------------ STATIC FILES ------------------ */
 const publicPath = path.join(__dirname, "../public");
 const sitePath = path.join(__dirname, "site");
 
-// Serve public login page
+// Public login page
 app.use(express.static(publicPath));
 
-// ✅ Serve main site assets (CSS, JS, etc.)
+// Protected site
 app.use("/protected/site", requireAuth, express.static(sitePath));
 
-// ✅ Serve main site index.html for /protected/site
 app.get("/protected/site", requireAuth, (req, res) => {
   res.sendFile(path.join(sitePath, "index.html"));
 });
 
-// ✅ SPA fallback for any deeper site route
 app.get("/protected/site/*", requireAuth, (req, res) => {
   res.sendFile(path.join(sitePath, "index.html"));
 });
 
-// Fallback to login page
+// Fallback → login
 app.get("*", (req, res) => {
   res.sendFile(path.join(publicPath, "index.html"));
 });
 
-// --- START SERVER ---
+/* ------------------ START SERVER ------------------ */
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
+app.listen(PORT, () =>
+  console.log(`✅ Server running on http://localhost:${PORT}`)
+);
