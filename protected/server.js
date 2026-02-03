@@ -9,7 +9,7 @@ import "dotenv/config";
 import { fileURLToPath } from "url";
 
 
-app.set("trust proxy", 1);
+// app.set("trust proxy", 1);
 
 /* ------------------ SETUP ------------------ */
 const __filename = fileURLToPath(import.meta.url);
@@ -209,6 +209,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () =>
   console.log(`✅ Server running on http://localhost:${PORT}`)
 );
+
 
 
 
