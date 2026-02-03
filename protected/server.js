@@ -8,9 +8,6 @@ import bcrypt from "bcryptjs";
 import "dotenv/config";
 import { fileURLToPath } from "url";
 
-
-// app.set("trust proxy", 1);
-
 /* ------------------ SETUP ------------------ */
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,7 +17,8 @@ const app = express();
 const USERS_PATH = path.join(__dirname, "users.json");
 const HISTORY_PATH = path.join(__dirname, "login-history.json");
 
-const validTokens = new Set();
+// token → { email, role }
+const sessions = new Map();
 const failedAttempts = {}; // { email: { count, lockUntil } }
 
 function generateToken() {
@@ -28,6 +26,7 @@ function generateToken() {
 }
 
 /* ------------------ MIDDLEWARE ------------------ */
+app.set("trust proxy", 1);
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
@@ -48,27 +47,44 @@ function saveHistory(entry) {
   fs.writeFileSync(HISTORY_PATH, JSON.stringify(history, null, 2));
 }
 
+/* ✅ FIXED: real client IP detection */
 function getClientIP(req) {
+  const xff = req.headers["x-forwarded-for"];
+  if (xff) {
+    const ip = xff.split(",")[0].trim();
+    if (!isPrivateIP(ip)) return ip;
+  }
+
+  const ip = req.ip || req.socket.remoteAddress;
+  return isPrivateIP(ip) ? "Unknown" : ip;
+}
+
+/* ✅ Helper: private IP check */
+function isPrivateIP(ip) {
   return (
-    req.headers["x-forwarded-for"]?.split(",")[0] ||
-    req.socket.remoteAddress ||
-    "Unknown"
+    !ip ||
+    ip.startsWith("10.") ||
+    ip.startsWith("192.168.") ||
+    ip.startsWith("172.") ||
+    ip === "127.0.0.1" ||
+    ip === "::1"
   );
 }
 
+/* ✅ FIXED: more reliable geo lookup */
 async function getLocation(ip) {
+  if (!ip || ip === "Unknown") return {};
+
   try {
-    const res = await fetch(`https://ipapi.co/${ip}/json/`);
+    const res = await fetch(`https://ipinfo.io/${ip}/json`);
     return await res.json();
   } catch {
     return {};
   }
 }
 
-// Telegram alert
 async function sendTelegramAlert(message) {
   const url = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`;
-
   await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -83,13 +99,16 @@ async function sendLoginAlert(email, req, success, locked = false) {
   const ip = getClientIP(req);
   const location = await getLocation(ip);
 
+  const city = location.city || "Unknown";
+  const country = location.country || "Unknown";
+
   const message = `
 🔐 LOGIN ${success ? "SUCCESS" : "FAILED"}${locked ? " (LOCKED)" : ""}
 
 Email: ${email}
 IP: ${ip}
-City: ${location.city || "Unknown"}
-Country: ${location.country_name || "Unknown"}
+City: ${city}
+Country: ${country}
 Time: ${new Date().toLocaleString()}
 `;
 
@@ -98,8 +117,8 @@ Time: ${new Date().toLocaleString()}
   saveHistory({
     email,
     ip,
-    city: location.city || "Unknown",
-    country: location.country_name || "Unknown",
+    city,
+    country,
     time: new Date().toISOString(),
     success,
     locked
@@ -109,10 +128,21 @@ Time: ${new Date().toLocaleString()}
 /* ------------------ AUTH MIDDLEWARE ------------------ */
 function requireAuth(req, res, next) {
   const token = req.cookies?.auth_token;
-  if (!token || !validTokens.has(token)) {
+  const session = token && sessions.get(token);
+
+  if (!session) {
     return res
       .status(401)
       .sendFile(path.join(__dirname, "../public/index.html"));
+  }
+
+  req.user = session;
+  next();
+}
+
+function requireAdmin(req, res, next) {
+  if (req.user.role !== "admin") {
+    return res.status(403).send("Access denied");
   }
   next();
 }
@@ -129,7 +159,6 @@ app.post("/verify", async (req, res) => {
 
   const now = Date.now();
 
-  // Lock check
   if (failedAttempts[email]?.lockUntil > now) {
     await sendLoginAlert(email, req, false, true);
     return res.status(403).json({ ok: false, locked: true });
@@ -137,12 +166,9 @@ app.post("/verify", async (req, res) => {
 
   const users = loadUsers();
   const user = users[email];
-  if (!user) {
-    return res.status(401).json({ ok: false });
-  }
+  if (!user) return res.status(401).json({ ok: false });
 
   const valid = await bcrypt.compare(password, user.passwordHash);
-
   if (!valid) {
     failedAttempts[email] ??= { count: 0, lockUntil: 0 };
     failedAttempts[email].count++;
@@ -158,11 +184,10 @@ app.post("/verify", async (req, res) => {
     return res.status(401).json({ ok: false });
   }
 
-  // Success
   delete failedAttempts[email];
 
   const token = generateToken();
-  validTokens.add(token);
+  sessions.set(token, { email, role: user.role });
 
   res.cookie("auth_token", token, {
     httpOnly: true,
@@ -178,14 +203,13 @@ app.post("/verify", async (req, res) => {
 // Logout
 app.post("/logout", (req, res) => {
   const token = req.cookies?.auth_token;
-  if (token) validTokens.delete(token);
-
+  if (token) sessions.delete(token);
   res.clearCookie("auth_token");
   res.json({ ok: true });
 });
 
-// Login history page (JSON)
-app.get("/protected/history", requireAuth, (req, res) => {
+// Admin-only login history
+app.get("/protected/history", requireAuth, requireAdmin, (req, res) => {
   res.json(loadHistory());
 });
 
@@ -193,12 +217,17 @@ app.get("/protected/history", requireAuth, (req, res) => {
 const publicPath = path.join(__dirname, "../public");
 const sitePath = path.join(__dirname, "site");
 
-app.use(express.static(publicPath));
+app.get("/protected/site/history", requireAuth, requireAdmin, (req, res) => {
+  res.sendFile(path.join(sitePath, "history.html"));
+});
+
 app.use("/protected/site", requireAuth, express.static(sitePath));
 
 app.get("/protected/site", requireAuth, (req, res) => {
   res.sendFile(path.join(sitePath, "index.html"));
 });
+
+app.use(express.static(publicPath));
 
 app.get("*", (req, res) => {
   res.sendFile(path.join(publicPath, "index.html"));
@@ -209,7 +238,3 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () =>
   console.log(`✅ Server running on http://localhost:${PORT}`)
 );
-
-
-
-
