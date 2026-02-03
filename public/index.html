@@ -256,7 +256,7 @@ async function login() {
     passwordInput.value = "";
 
     if (data.ok) {
-      window.location.href = "/protected";
+      window.location.href = "/protected/site";
     } else {
       showError("Invalid email or password.");
     }
@@ -281,3 +281,4 @@ emailInput.addEventListener("keydown", (e) => {
 </script>
 </body>
 </html>
+
