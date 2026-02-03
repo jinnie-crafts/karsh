@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Login History Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body {
+  background:#0d0d17;
+  color:#c5c6c7;
+  font-family: monospace;
+  padding:30px;
+}
+h1 {
+  color:#61dafb;
+  margin-bottom:20px;
+}
+table {
+  width:100%;
+  border-collapse: collapse;
+}
+th, td {
+  padding:12px;
+  border-bottom:1px solid #2a2a3d;
+  text-align:left;
+}
+th {
+  color:#61dafb;
+}
+.success {
+  color:#4caf50;
+}
+.fail {
+  color:#ff4d4d;
+}
+.locked {
+  color:#ff9800;
+}
+</style>
+</head>
+<body>
+
+<h1>🔐 Login History</h1>
+
+<table id="historyTable">
+  <thead>
+    <tr>
+      <th>Email</th>
+      <th>IP</th>
+      <th>Location</th>
+      <th>Status</th>
+      <th>Time</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script>
+fetch("/protected/history")
+  .then(res => {
+    if (!res.ok) throw new Error("Not authorized");
+    return res.json();
+  })
+  .then(data => {
+    const tbody = document.querySelector("tbody");
+    data.forEach(entry => {
+      const tr = document.createElement("tr");
+
+      let status = entry.success ? "SUCCESS" : "FAILED";
+      let cls = entry.success ? "success" : "fail";
+      if (entry.locked) {
+        status = "LOCKED";
+        cls = "locked";
+      }
+
+      tr.innerHTML = `
+        <td>${entry.email}</td>
+        <td>${entry.ip}</td>
+        <td>${entry.city}, ${entry.country}</td>
+        <td class="${cls}">${status}</td>
+        <td>${new Date(entry.time).toLocaleString()}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  })
+  .catch(() => {
+    document.body.innerHTML = "<h2>🚫 Access denied</h2>";
+  });
+</script>
+
+</body>
+</html>
