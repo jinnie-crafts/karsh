@@ -8,6 +8,9 @@ import bcrypt from "bcryptjs";
 import "dotenv/config";
 import { fileURLToPath } from "url";
 
+
+app.set("trust proxy", 1);
+
 /* ------------------ SETUP ------------------ */
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -165,6 +168,7 @@ app.post("/verify", async (req, res) => {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production"
+    path: "/"
   });
 
   await sendLoginAlert(email, req, true);
@@ -205,4 +209,5 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () =>
   console.log(`✅ Server running on http://localhost:${PORT}`)
 );
+
 
