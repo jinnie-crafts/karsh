@@ -1,5 +1,4 @@
 import fs from "fs";
-import nodemailer from "nodemailer";
 import fetch from "node-fetch";
 import express from "express";
 import path from "path";
@@ -13,12 +12,14 @@ import { fileURLToPath } from "url";
 /* ------------------ SETUP ------------------ */
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 const app = express();
 
 /* ------------------ CONSTANTS ------------------ */
 const USERS_PATH = path.join(__dirname, "users.json");
+const HISTORY_PATH = path.join(__dirname, "login-history.json");
+
 const validTokens = new Set();
+const failedAttempts = {}; // { email: { count, lockUntil } }
 
 function generateToken() {
   return crypto.randomBytes(32).toString("hex");
@@ -32,6 +33,17 @@ app.use(cookieParser());
 /* ------------------ HELPERS ------------------ */
 function loadUsers() {
   return JSON.parse(fs.readFileSync(USERS_PATH, "utf-8"));
+}
+
+function loadHistory() {
+  if (!fs.existsSync(HISTORY_PATH)) return [];
+  return JSON.parse(fs.readFileSync(HISTORY_PATH, "utf-8"));
+}
+
+function saveHistory(entry) {
+  const history = loadHistory();
+  history.unshift(entry);
+  fs.writeFileSync(HISTORY_PATH, JSON.stringify(history, null, 2));
 }
 
 function getClientIP(req) {
@@ -51,39 +63,7 @@ async function getLocation(ip) {
   }
 }
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.ALERT_EMAIL,
-    pass: process.env.ALERT_EMAIL_PASS
-  }
-});
-
-async function sendLoginAlert(email, req) {
-  const ip = getClientIP(req);
-  const location = await getLocation(ip);
-
-  const message = `
-🚨 NEW LOGIN ALERT
-
-Email: ${email}
-IP: ${ip}
-City: ${location.city || "Unknown"}
-Country: ${location.country_name || "Unknown"}
-Time: ${new Date().toLocaleString()}
-`;
-
-  await transporter.sendMail({
-    from: `"Security Alert" <${process.env.ALERT_EMAIL}>`,
-    to: process.env.ALERT_EMAIL,
-    subject: "🚨 Login Detected",
-    text: message
-  });
-   // Telegram alert
-  await sendTelegramAlert(message);
-}
-
-//tg bot service login alert system
+// Telegram alert
 async function sendTelegramAlert(message) {
   const url = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`;
 
@@ -97,6 +77,32 @@ async function sendTelegramAlert(message) {
   });
 }
 
+async function sendLoginAlert(email, req, success, locked = false) {
+  const ip = getClientIP(req);
+  const location = await getLocation(ip);
+
+  const message = `
+🔐 LOGIN ${success ? "SUCCESS" : "FAILED"}${locked ? " (LOCKED)" : ""}
+
+Email: ${email}
+IP: ${ip}
+City: ${location.city || "Unknown"}
+Country: ${location.country_name || "Unknown"}
+Time: ${new Date().toLocaleString()}
+`;
+
+  await sendTelegramAlert(message);
+
+  saveHistory({
+    email,
+    ip,
+    city: location.city || "Unknown",
+    country: location.country_name || "Unknown",
+    time: new Date().toISOString(),
+    success,
+    locked
+  });
+}
 
 /* ------------------ AUTH MIDDLEWARE ------------------ */
 function requireAuth(req, res, next) {
@@ -111,14 +117,20 @@ function requireAuth(req, res, next) {
 
 /* ------------------ ROUTES ------------------ */
 
-// Health check
+// Health
 app.get("/health", (req, res) => res.send("ok"));
 
-// Login (email + password)
+// Login
 app.post("/verify", async (req, res) => {
   const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ ok: false });
+  if (!email || !password) return res.status(400).json({ ok: false });
+
+  const now = Date.now();
+
+  // Lock check
+  if (failedAttempts[email]?.lockUntil > now) {
+    await sendLoginAlert(email, req, false, true);
+    return res.status(403).json({ ok: false, locked: true });
   }
 
   const users = loadUsers();
@@ -128,9 +140,24 @@ app.post("/verify", async (req, res) => {
   }
 
   const valid = await bcrypt.compare(password, user.passwordHash);
+
   if (!valid) {
+    failedAttempts[email] ??= { count: 0, lockUntil: 0 };
+    failedAttempts[email].count++;
+
+    if (failedAttempts[email].count >= 3) {
+      failedAttempts[email].lockUntil = now + 10 * 60 * 1000;
+      failedAttempts[email].count = 0;
+      await sendLoginAlert(email, req, false, true);
+      return res.status(403).json({ ok: false, locked: true });
+    }
+
+    await sendLoginAlert(email, req, false);
     return res.status(401).json({ ok: false });
   }
+
+  // Success
+  delete failedAttempts[email];
 
   const token = generateToken();
   validTokens.add(token);
@@ -139,11 +166,9 @@ app.post("/verify", async (req, res) => {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production"
-    // session cookie (dies on browser close)
   });
 
-  await sendLoginAlert(email, req);
-
+  await sendLoginAlert(email, req, true);
   res.json({ ok: true });
 });
 
@@ -152,34 +177,26 @@ app.post("/logout", (req, res) => {
   const token = req.cookies?.auth_token;
   if (token) validTokens.delete(token);
 
-  res.clearCookie("auth_token", {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production"
-  });
-
+  res.clearCookie("auth_token");
   res.json({ ok: true });
+});
+
+// Login history page (JSON)
+app.get("/protected/history", requireAuth, (req, res) => {
+  res.json(loadHistory());
 });
 
 /* ------------------ STATIC FILES ------------------ */
 const publicPath = path.join(__dirname, "../public");
 const sitePath = path.join(__dirname, "site");
 
-// Public login page
 app.use(express.static(publicPath));
-
-// Protected site
 app.use("/protected/site", requireAuth, express.static(sitePath));
 
 app.get("/protected/site", requireAuth, (req, res) => {
   res.sendFile(path.join(sitePath, "index.html"));
 });
 
-app.get("/protected/site/*", requireAuth, (req, res) => {
-  res.sendFile(path.join(sitePath, "index.html"));
-});
-
-// Fallback → login
 app.get("*", (req, res) => {
   res.sendFile(path.join(publicPath, "index.html"));
 });
