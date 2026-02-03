@@ -824,3 +824,36 @@ body{
     font-size: 14px;
   }
 }
+
+/*login history view button*/
+/* Admin History Button */
+.history-btn {
+  background: linear-gradient(135deg, #61dafb, #21a1f1);
+  color: #0d0d17;
+  border: none;
+  padding: 12px 22px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  box-shadow: 0 8px 20px rgba(97, 218, 251, 0.25);
+  transition: all 0.25s ease;
+}
+
+/* Hover effect */
+.history-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(97, 218, 251, 0.4);
+}
+
+/* Click effect */
+.history-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 16px rgba(97, 218, 251, 0.2);
+}
+
+/* Optional: icon spacing */
+.history-btn span {
+  margin-right: 6px;
+}
