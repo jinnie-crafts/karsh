@@ -1,11 +1,12 @@
 {
   "admin@karsh.in": {
     "passwordHash": "$2a$12$e6635lLdTXq.PeDTop5mDuHHLnlco6gahSHYimAhH9.JdsE5e3QtG",
-    "role": "user"
+    "role": "admin"
   },
   "komal@karsh.in": {
     "passwordHash": "$2a$12$4zl2Fdw7iDoiJUZiIaBGnuiR4dGmYXul2Tv5i1MI7z.bLQeHB.ru.",
     "role": "admin"
   }
 }
+
 
