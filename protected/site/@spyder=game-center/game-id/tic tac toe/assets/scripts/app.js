@@ -1,3 +1,4 @@
+let starter = false; // false = X starts, true = O starts
 const X_CLASS = 'x';
 const O_CLASS = 'o';
 const WINNING_COMBINATIONS = [
@@ -123,11 +124,30 @@ function getEmptyCells() {
 		cell => !cell.classList.contains('x') && !cell.classList.contains('o')
 	);
 }
-
-function setCpuBestMove() {
-	const emptyCells = getEmptyCells();
-	return emptyCells[Math.floor(Math.random() * emptyCells.length)];
+//CPU AI
+function getBoardState() {
+	return [...cells].map(cell => {
+		if (cell.classList.contains(X_CLASS)) return X_CLASS;
+		if (cell.classList.contains(O_CLASS)) return O_CLASS;
+		return '';
+	});
 }
+//
+
+// function setCpuBestMove() {
+// 	const emptyCells = getEmptyCells();
+// 	return emptyCells[Math.floor(Math.random() * emptyCells.length)];
+// }
+
+//CPU AI
+function setCpuBestMove() {
+
+	const board = getBoardState();
+	const bestMove = minimax(board, currentClass).index;
+
+	return cells[bestMove];
+}
+//
 
 async function getCpuChoice() {
 	currentClass = oTurn ? O_CLASS : X_CLASS;
@@ -150,6 +170,76 @@ async function getCpuChoice() {
 
 	getPlayerChoice();
 }
+
+//CPU AI
+function minimax(board, player) {
+
+	const opponent = player === X_CLASS ? O_CLASS : X_CLASS;
+
+	const emptyIndexes = board
+		.map((v, i) => v === '' ? i : null)
+		.filter(v => v !== null);
+
+	if (checkWinner(board, X_CLASS)) return { score: -10 };
+	if (checkWinner(board, O_CLASS)) return { score: 10 };
+
+	if (emptyIndexes.length === 0) return { score: 0 };
+
+	let moves = [];
+
+	for (let i = 0; i < emptyIndexes.length; i++) {
+
+		let move = {};
+		move.index = emptyIndexes[i];
+
+		board[emptyIndexes[i]] = player;
+
+		if (player === O_CLASS) {
+			let result = minimax(board, X_CLASS);
+			move.score = result.score;
+		} else {
+			let result = minimax(board, O_CLASS);
+			move.score = result.score;
+		}
+
+		board[emptyIndexes[i]] = '';
+		moves.push(move);
+	}
+
+	let bestMove;
+
+	if (player === O_CLASS) {
+		let bestScore = -10000;
+		for (let i = 0; i < moves.length; i++) {
+			if (moves[i].score > bestScore) {
+				bestScore = moves[i].score;
+				bestMove = i;
+			}
+		}
+	} else {
+		let bestScore = 10000;
+		for (let i = 0; i < moves.length; i++) {
+			if (moves[i].score < bestScore) {
+				bestScore = moves[i].score;
+				bestMove = i;
+			}
+		}
+	}
+
+	return moves[bestMove];
+}
+//
+function checkWinner(board, player) {
+
+	return WINNING_COMBINATIONS.some(combination => {
+
+		return combination.every(index => {
+			return board[index] === player;
+		});
+
+	});
+}
+//
 
 function getPlayerChoice() {
 	cells.forEach(cell => {
@@ -288,7 +378,9 @@ function setWinner() {
 }
 
 function setNextRound() {
-	oTurn = false;
+
+	starter = !starter;   // switch starter every round
+	oTurn = starter;      // set turn based on starter
 
 	changeDomLayout(modalEl, 'd-block', 'd-none');
 	changeDomLayout(backdropEl, 'd-block', 'd-none');
